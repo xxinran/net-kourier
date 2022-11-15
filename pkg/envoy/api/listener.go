@@ -229,10 +229,11 @@ func createFilterChainsForTLS(manager *hcm.HttpConnectionManager, sniMatches []*
 	return res, nil
 }
 
-// MessageToAnyWithError converts from proto message to proto Any
-func MessageToAnyWithError(msg proto.Message) (*anypb.Any, error) {
+// messageToAny converts from proto message to proto Any
+func messageToAny(msg proto.Message) (*anypb.Any, error) {
 	b, err := proto.MarshalOptions{Deterministic: true}.Marshal(msg)
 	if err != nil {
+		err = fmt.Errorf("error marshaling message %s: %w", prototext.Format(msg), err)
 		return nil, err
 	}
 	return &anypb.Any{
@@ -240,16 +241,6 @@ func MessageToAnyWithError(msg proto.Message) (*anypb.Any, error) {
 		TypeUrl: "type.googleapis.com/" + string(msg.ProtoReflect().Descriptor().FullName()),
 		Value:   b,
 	}, nil
-}
-
-// MessageToAny converts from proto message to proto Any
-func MessageToAny(msg proto.Message) (*anypb.Any, error) {
-	out, err := MessageToAnyWithError(msg)
-	if err != nil {
-		err = fmt.Errorf("error marshaling Any %s: %w", prototext.Format(msg), err)
-		return nil, err
-	}
-	return out, err
 }
 
 func createCryptoMbMessaage(privateKey []byte, pollDelay *durationpb.Duration) (*anypb.Any, error) {
@@ -261,7 +252,7 @@ func createCryptoMbMessaage(privateKey []byte, pollDelay *durationpb.Duration) (
 			},
 		},
 	}
-	return MessageToAny(&config)
+	return messageToAny(&config)
 }
 
 func createTLSContext(certificate []byte, privateKey []byte, privateKeyProvider string) (*auth.DownstreamTlsContext, error) {
