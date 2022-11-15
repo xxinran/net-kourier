@@ -398,7 +398,11 @@ func newExternalEnvoyListenerWithOneCertFilterChain(ctx context.Context, manager
 		return nil, err
 	}
 
-	return envoy.CreateFilterChainFromCertificateAndPrivateKey(manager, certificateChain, privateKey, privateKeyProvider)
+	return envoy.CreateFilterChainFromCertificateAndPrivateKey(manager, &envoy.Certificate{
+		Certificate:        certificateChain,
+		PrivateKey:         privateKey,
+		PrivateKeyProvider: privateKeyProvider,
+	})
 }
 
 func newExternalEnvoyListenerWithOneCert(ctx context.Context, manager *httpconnmanagerv3.HttpConnectionManager, kubeClient kubeclient.Interface, enableProxyProtocol bool, privateKeyProvider string) (*v3.Listener, error) {
@@ -415,7 +419,11 @@ func newInternalEnvoyListenerWithOneCert(ctx context.Context, manager *httpconnm
 	if err != nil {
 		return nil, err
 	}
-	filterChain, err := envoy.CreateFilterChainFromCertificateAndPrivateKey(manager, certificateChain, privateKey, privateKeyProvider)
+	filterChain, err := envoy.CreateFilterChainFromCertificateAndPrivateKey(manager, &envoy.Certificate{
+		Certificate:        certificateChain,
+		PrivateKey:         privateKey,
+		PrivateKeyProvider: privateKeyProvider,
+	})
 	if err != nil {
 		return nil, err
 	}
